@@ -1,0 +1,146 @@
+﻿EXPLICAÇÃO DO CÓDIGO DE FORMA SIMPLES. (QUANDO ATUALIZAR ELE, ATUALIZE TAMBÉM AQUI).
+
+package{
+	import flash.display.MovieClip;
+	import flash.events.KeyboardEvent;
+	import flash.ui.Keyboard;
+	import flash.events.Event; //USADO PARA "ENTER_FRAME event".
+	
+	public class Main extends MovieClip{
+		
+		//CONSTANTES.
+		const gravity:Number = 1.5;            //GRAVIDADE NO JOGO.
+		const dist_btw_obstacles:Number = 300; //DISTÂNCIA ENTRE DOIS OBSTÁCULOS.
+		const ob_speed:Number = 8;		//VELOCIDADE DO OBSTÁCULO.
+		const jump_force:Number = 15;          //FORÇA DO SALTO.
+		
+		//VARIÁVEIS.
+		var player:Player = new Player();	   
+		var lastob:Obstacle = new Obstacle();  //VARIÁVEL PARA AMARZENAR O ÚLTIMO OBSTÁCULO NA MATRIZ OBSTÁCULO.
+		var obstacles:Array = new Array();     //UMA MATRIZ PARA ARMAZENAR TODOS OS OBSTÁCULOS.
+		var yspeed:Number = 0;				   //VARIÁVEL REPRESENTANDO A VELOCIDADE VERTICAL DO PÁSSARO.
+		var score:Number = 0;				   //VARIÁVEL REPRESENTANDO O SCORE.
+		
+		public function Main(){
+			init();
+		}
+		
+		function init():void {
+			//INICIAR TODAS AS VARIÁVEIS.
+			player = new Player();
+			lastob = new Obstacle();
+			obstacles = new Array();
+			yspeed = 0;
+			score = 0;
+			
+			//ADICIONAR O JOGADOR AO CENTRO DO PALCO.
+			player.x = stage.stageWidth/2;
+			player.y = stage.stageHeight/2;
+			addChild(player);
+			
+			//CRIA 3 OBSTÁCULOS ().
+			createObstacle();
+			createObstacle();
+			createObstacle();
+			
+			//ADICIONAR "EnterFrame EventListeners" E "KeyBoard EventListeners".
+			addEventListener(Event.ENTER_FRAME,onEnterFrameHandler);
+            stage.addEventListener(KeyboardEvent.KEY_UP, key_up);
+		}
+		
+		private function key_up(event:KeyboardEvent){
+			if(event.keyCode == Keyboard.SPACE){
+				//SE A TECLA DE ESPAÇO FOR PRESSIONADA, FAÇA O PÁSSARO VOAR.
+				yspeed = -jump_force;
+			}
+		}
+		
+		function restart(){
+			if(contains(player))
+				removeChild(player);
+				for(var i:int = 0; i < obstacles.length; ++i){
+					if(contains(obstacles[i]) && obstacles[i] != null)
+					removeChild(obstacles[i]);
+					obstacles[i] = null;
+				}
+				obstacles.slice(0);
+				init();
+		}
+		
+		function onEnterFrameHandler(event:Event){
+			//ATUALIZAR O JOGADOR.
+			yspeed += gravity;
+			player.y += yspeed;
+			
+			//REINICIAR O JOGADOR SE TOCAR NO CHÃO.
+			if(player.y + player.height/2 > stage.stageHeight){
+				restart();
+			}
+			
+			//NÃO PERMITA QUE O PÁSSARO FIQUE ACIMA DA TELA.
+			if(player.y - player.height/2 < 0){
+				player.y = player.height/2;
+			}
+			
+			//ATUALIZAR OBSTÁCULOS.
+			for(var i:int = 0;i<obstacles.length;++i){
+				updateObstacle(i);
+			}
+	        
+			//EXIBIR A PONTUAÇÃO.
+			scoretxt.text = String(score);
+		}
+		
+		//ESTA FUNÇÃO ATUALIZA O OBSTÁCULO.
+		function updateObstacle(i:int){
+			var ob:Obstacle = obstacles[i];
+			
+			if(ob == null)
+			return;
+			ob.x -= ob_speed;
+			
+			if(ob.x < -ob.width){
+				//SE UM OBSTÁCULO CHEGAR Á ESQUERDA DO PALCO, MUDE SUA POSIÇÃO PARA A PARTE DE TRÁS DO ÚLTIMO OBSTÁCULO.
+				changeObstacle(ob);
+			}
+			
+			//SE O PÁSSARO ATINGIR UM OBSTÁCULO, REINICIAR O JOGO.
+			if(ob.hitTestPoint(player.x + player.width/2,player.y + player.height/2,true)
+			   || ob.hitTestPoint(player.x + player.width/2,player.y - player.height/2,true)
+			   || ob.hitTestPoint(player.x - player.width/2,player.y + player.height/2,true)
+			   || ob.hitTestPoint(player.x - player.width/2,player.y - player.height/2,true)){
+				restart();
+			}
+			
+			//SE O PÁSSARO PASSAR PELO OBSTÁCULO SEM BATER, AUMENTE A PONTUAÇÃO
+			if((player.x - player.width/2 > ob.x + ob.width/2) && !ob.covered){
+				++score;
+				ob.covered = true;
+			}
+		}
+		
+		//ESTA FUNÇÃO ALTERA A POSIÇÃO DO OBSTÁCULO DE TAL FORMA QUE SERÁ O ÚLTIMO OBSTÁCULO E TAMBÉM RANDOMIZA SUA POSIÇÃO Y.
+		function changeObstacle(ob:Obstacle){
+			ob.x = lastob.x + dist_btw_obstacles;
+			ob.y = 100+Math.random()*(stage.stageHeight-200);
+			lastob = ob;
+			ob.covered = false;
+		}
+		
+		//ESTA FUNÇÃO CRIA UM OBSTÁCULO
+		function createObstacle(){
+			var ob:Obstacle = new Obstacle();
+			if(lastob.x == 0)
+			ob.x = 800;
+			else
+			ob.x = lastob.x + dist_btw_obstacles;
+			ob.y = 100+Math.random()*(stage.stageHeight-200);
+			addChild(ob);
+			obstacles.push(ob);
+			lastob = ob;
+		}
+		
+		
+	}
+}
+

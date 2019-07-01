@@ -1,0 +1,22 @@
+
+stop();
+
+buttonBack.addEventListener(MouseEvent.MOUSE_UP, goBack);
+//
+
+function goBack(event:MouseEvent) { 
+	gotoAndStop(1);
+}
+
+name1.text = savedSN.name1;
+points1.text = savedSN.score1;
+
+name2.text = savedSN.name2;
+points2.text = savedSN.score2;
+
+name3.text = savedSN.name3;
+points3.text = savedSN.score3;
+
+name4.text = savedSN.name4;
+points4.text = savedSN.score4;
+

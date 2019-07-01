@@ -1,0 +1,241 @@
+const gravity: Number = 1.5;
+const dist_btw_obstacles: Number = 300;
+const ob_speed: Number = 8;
+const jump_force: Number = 15;
+
+
+var player: Player = new Player();
+var lastob: Obstacle = new Obstacle();
+var obstacles: Array = new Array();
+var yspeed: Number = 0;
+var SCORE: uint = 0;
+gameScore.text = String(SCORE);
+
+stage.addEventListener(Event.ENTER_FRAME, checkFrame);
+
+function init(): void {
+
+	player = new Player();
+	lastob = new Obstacle();
+	obstacles = new Array();
+	yspeed = 0;
+	score = 0;
+
+
+	player.x = stage.stageWidth / 2;
+	player.y = stage.stageHeight / 2;
+	addChild(player);
+
+
+	createObstacle();
+	createObstacle();
+	createObstacle();
+
+
+	addEventListener(Event.ENTER_FRAME, onEnterFrameHandler);
+	stage.addEventListener(KeyboardEvent.KEY_UP, key_up);
+}
+
+//tecla de space
+
+
+
+function restart() {
+	if (contains(player))
+		removeChild(player);
+	for (var i: int = 0; i < obstacles.length; ++i) {
+		if (contains(obstacles[i]) && obstacles[i] != null)
+			removeChild(obstacles[i]);
+		obstacles[i] = null;
+	}
+	obstacles.slice(0);
+	init();
+}
+
+function onEnterFrameHandler(event: Event) {
+
+	yspeed += gravity;
+	player.y += yspeed;
+
+
+	if (player.y + player.height / 2 > stage.stageHeight) {
+		restart();
+	}
+
+
+	if (player.y - player.height / 2 < 0) {
+		player.y = player.height / 2;
+	}
+
+
+	for (var i: int = 0; i < obstacles.length; ++i) {
+		updateObstacle(i);
+	}
+
+	function updateObstacle(i: int) {
+		var ob: Obstacle = obstacles[i];
+
+		if (ob == null)
+			return;
+		ob.x -= ob_speed;
+
+		if (ob.x < -ob.width) {
+
+			changeObstacle(ob);
+		}
+
+
+		if (ob.hitTestPoint(player.x + player.width / 2, player.y + player.height / 2, true) || ob.hitTestPoint(player.x + player.width / 2, player.y - player.height / 2, true) || ob.hitTestPoint(player.x - player.width / 2, player.y + player.height / 2, true) || ob.hitTestPoint(player.x - player.width / 2, player.y - player.height / 2, true)) {
+			restart();
+		}
+
+
+		if ((player.x - player.width / 2 > ob.x + ob.width / 2) && !ob.covered) {
+			++score;
+			ob.covered = true;
+		}
+	}
+
+
+	function changeObstacle(ob: Obstacle) {
+		ob.x = lastob.x + dist_btw_obstacles;
+		ob.y = 100 + Math.random() * (stage.stageHeight - 200);
+		lastob = ob;
+		ob.covered = false;
+	}
+
+
+	function createObstacle() {
+		var ob: Obstacle = new Obstacle();
+		if (lastob.x == 0)
+			ob.x = 800;
+		else
+			ob.x = lastob.x + dist_btw_obstacles;
+		ob.y = 100 + Math.random() * (stage.stageHeight - 200);
+		addChild(ob);
+		obstacles.push(ob);
+		lastob = ob;
+	}
+
+
+}
+
+
+function checkFrame(event: Event) {
+
+	if (currentFrame == 200) {
+		nameField.text = "";
+		finScore.text = String(SCORE);
+		finScreen.y = 200;
+		buttonSave.y = 143;
+		buttonContinue.y = 373;
+		finScore.y = 127;
+		nameField.y = 88;
+
+		stage.removeEventListener(Event.ENTER_FRAME, checkFrame);
+
+		stop();
+	}
+}
+
+
+
+buttonSave.addEventListener(MouseEvent.MOUSE_UP, saveScore);
+buttonContinue.addEventListener(MouseEvent.MOUSE_UP, continueStartM);
+
+
+function saveScore(event: MouseEvent) {
+	if (SCORE == 0) {
+		nameField.textColor = 0xFF0000;
+		nameField.text = "Points";
+	} else if (SCORE < savedSN.score4) {
+		nameField.textColor = 0xFF0000;
+		nameField.text = "Score<";
+	} else if (nameField.text == "" || nameField.text == "Name") {
+		nameField.textColor = 0xFF0000;
+		nameField.text = "Name";
+		stage.addEventListener(Event.ENTER_FRAME, checkTextName);
+	} else {
+
+		if ((SCORE > savedSN.score1 || savedSN.score1 == "-") && SCORE != 0) {
+			trace("Score 1");
+			savedSN = {
+				name1: nameField.text,
+				name2: savedSN.name1,
+				name3: savedSN.name2,
+				name4: savedSN.name3,
+				score1: SCORE,
+				score2: savedSN.score1,
+				score3: savedSN.score2,
+				score4: savedSN.score3
+			};
+			soSavedScNa.data.nameScore = savedSN;
+			soSavedScNa.flush();
+			buttonSave.removeEventListener(MouseEvent.MOUSE_UP, saveScore);
+			buttonContinue.removeEventListener(MouseEvent.MOUSE_UP, continueStartM);
+			gotoAndStop(1);
+		} else if ((SCORE > savedSN.score2 || savedSN.score2 == "-") && SCORE != 0) {
+			trace("Score 2");
+			savedSN = {
+				name1: savedSN.name1,
+				name2: nameField.text,
+				name3: savedSN.name2,
+				name4: savedSN.name3,
+				score1: savedSN.score1,
+				score2: SCORE,
+				score3: savedSN.score2,
+				score4: savedSN.score3
+			};
+			soSavedScNa.data.nameScore = savedSN;
+			soSavedScNa.flush();
+			buttonSave.removeEventListener(MouseEvent.MOUSE_UP, saveScore);
+			buttonContinue.removeEventListener(MouseEvent.MOUSE_UP, continueStartM);
+			gotoAndStop(1);
+		} else if ((SCORE > savedSN.score3 || savedSN.score3 == "-") && SCORE != 0) {
+			trace("Score 3");
+			savedSN = {
+				name1: savedSN.name1,
+				name2: savedSN.name2,
+				name3: nameField.text,
+				name4: savedSN.name3,
+				score1: savedSN.score1,
+				score2: savedSN.score2,
+				score3: SCORE,
+				score4: savedSN.score3
+			};
+			soSavedScNa.data.nameScore = savedSN;
+			soSavedScNa.flush();
+			buttonSave.removeEventListener(MouseEvent.MOUSE_UP, saveScore);
+			buttonContinue.removeEventListener(MouseEvent.MOUSE_UP, continueStartM);
+			gotoAndStop(1);
+		} else if ((SCORE > savedSN.score4 || savedSN.score4 == "-") && SCORE != 0) {
+			trace("Score 4");
+			savedSN = {
+				name1: savedSN.name1,
+				name2: savedSN.name2,
+				name3: savedSN.name3,
+				name4: nameField.text,
+				score1: savedSN.score1,
+				score2: savedSN.score2,
+				score3: savedSN.score3,
+				score4: SCORE
+			};
+			soSavedScNa.data.nameScore = savedSN;
+			soSavedScNa.flush();
+			buttonSave.removeEventListener(MouseEvent.MOUSE_UP, saveScore);
+			buttonContinue.removeEventListener(MouseEvent.MOUSE_UP, continueStartM);
+			gotoAndStop(1);
+		}
+	}
+}
+function checkTextName(event: Event) {
+	if (nameField.text != "" && nameField.text != "Name") {
+		nameField.textColor = 0xFFF7E2;
+		stage.removeEventListener(Event.ENTER_FRAME, checkTextName);
+	}
+}
+function continueStartM(event: MouseEvent) {
+	buttonSave.removeEventListener(MouseEvent.MOUSE_UP, saveScore);
+	buttonContinue.removeEventListener(MouseEvent.MOUSE_UP, continueStartM);
+	gotoAndStop(1);
+}

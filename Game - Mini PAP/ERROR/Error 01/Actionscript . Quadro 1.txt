@@ -1,0 +1,30 @@
+stop();
+
+var soSavedScNa:SharedObject = SharedObject.getLocal("gameP13ksLksf3"); 
+																	   
+
+var savedSN:Object = soSavedScNa.data.nameScore; 
+
+buttonStart.addEventListener(MouseEvent.MOUSE_UP, startGame);
+buttonLeaderboard.addEventListener(MouseEvent.MOUSE_UP, leaderboard);
+
+if (savedSN == null) {  
+	trace("New game save created");
+	savedSN = { 
+				name1:"-",
+				name2:"-",
+				name3:"-",
+				name4:"-",
+			score1:"-",
+			score2:"-",
+			score3:"-",
+			score4:"-"};
+	soSavedScNa.data.nameScore = savedSN; 
+	soSavedScNa.flush(); 
+}
+function startGame(event:MouseEvent) { 
+	gotoAndPlay(3);
+}
+function leaderboard(event:MouseEvent) { 
+	gotoAndStop(2);
+}
